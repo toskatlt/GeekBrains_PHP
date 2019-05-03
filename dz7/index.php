@@ -1,14 +1,14 @@
 <?php 
 
-/* HEADER */ include ("modules/header.php");
+/* HEADER */ include ("templates/header.php");
 
-$allProducts = allProducts($dbcnx);
+$allProducts = allProducts();
 
 if (isset($_POST['id'])) {
-	addToBasket((int)$_POST['id'], mysqli_real_escape_string($dbcnx, $_COOKIE['PHPSESSID']), $dbcnx);
+	addToBasket((int)$_POST['id'], mysqli_real_escape_string(get_db(), $_COOKIE['PHPSESSID']));
 }
 
-/* MENU */ include ("modules/menu.php"); 
+/* MENU */ include ("templates/menu.php"); 
 
 ?>	
 	<div class="futured_items">

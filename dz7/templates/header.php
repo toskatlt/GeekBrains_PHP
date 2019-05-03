@@ -4,6 +4,20 @@ $randval = rand();
 include_once('function.php');
 
 session_start();
+$allow = false;
+
+if (isset($_GET['logout'])) {
+    session_destroy();
+    setcookie("hash");
+    header("Location: ".$_SERVER['PHP_SELF']);
+}
+
+if (is_auth()) {
+    $allow = true;
+    $user = get_user();
+}
+
+$selectProductsUser = selectProductsUser (mysqli_real_escape_string(get_db(), $_COOKIE['PHPSESSID']));
 
 ?>
 
@@ -69,12 +83,23 @@ session_start();
 							<div class="cart-count" id="cart-count">0</div>
 						</a>
 					</div>
-					<div class="my-account">My Account<i class="fas fa-caret-down"></i>
-						<div class="sign_drop">
-							<a href="login.php" class="cart__button">Register Now</a>
-							<a href="login.php" class="cart__button">Sign in</a>	
+					<?php if (!$allow) { ?>
+						<div class="my-account">My Account<i class="fas fa-caret-down"></i>
+							<div class="sign_drop">
+								<a href="login.php" class="cart__button">Register Now</a>
+								<a href="login.php" class="cart__button">Sign in</a>
+							</div>
 						</div>
-					</div>
+					<?php } else { ?>
+						<div class="my-account"><?=$user?><i class="fas fa-caret-down"></i>
+							<div class="sign_drop">
+								<?php if ($user == 'admin') { ?>
+									<a href="admin.php" class="cart__button">Control Panel</a>
+								<?php } ?>
+								<a href="?logout" class="cart__button">EXIT</a>
+							</div>
+						</div>
+					<?php } ?>
 				</div>
 			</div>
 		</header>
@@ -82,7 +107,7 @@ session_start();
 
 <script>
 	
-	var id_session = '<?php echo @$_COOKIE['PHPSESSID']?>';
+	let id_session = '<?php echo @$_COOKIE['PHPSESSID']?>';
 	
 	function countBasket (id_session) {
 		$.ajax({
@@ -92,15 +117,10 @@ session_start();
 				id_session: id_session,
 			},
 			success: function(html) {
-				console.log(html);
-				$("#cart-count").html(html);
-				
+				$("#cart-count").html(html);	
 			}
 		});
 	}
 	countBasket(id_session);
 	
 </script>
-
-
-<?php 

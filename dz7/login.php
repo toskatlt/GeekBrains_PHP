@@ -1,57 +1,40 @@
 <?php 
+/* HEADER */ include ("templates/header.php");
 
-/* HEADER */ include ("modules/header.php");
-
-$SALT = "fg53f4h3g4fd3fhh5";
-$secret_key = md5("123" . $SALT);
-$cookie_key = $_COOKIE['key'];
-$session_key = $_SESSION['pass'];
-$current_key = $_GET['pass'];
-
-
-$allow = false;
-
-if (isset($_GET['logout'])) {
-    setcookie("key");
-    session_destroy();
-    header("Location: ".$_SERVER['PHP_SELF']);
-}
-
-if (empty($current_key)) {
-    if ($session_key == $secret_key) {
-        $allow = true;
+if (isset($_POST['send'])) {
+    $login = $_POST['login'];
+    $pass = $_POST['pass'];
+	
+    if (!auth($login, $pass)) {
+        echo 'Не верный логин пароль';
     } else {
-        if ($cookie_key == $secret_key) {
-            $allow = true;
+        if (isset($_POST['save'])) {
+            $hash = uniqid(rand(), true);
+            $dbcnx = get_db();
+            $id = mysqli_real_escape_string($dbcnx, strip_tags(stripslashes($_SESSION['id'])));
+            $result = mysqli_query($dbcnx, "UPDATE `users` SET `hash` = '{$hash}' WHERE `users`.`id` = {$id}");
+            setcookie("hash", $hash, time() + 3600);
         }
-    }
-} else {
-    if (md5($current_key.$SALT) == $secret_key) {
         $allow = true;
-        $_SESSION["pass"] = md5($current_key . $SALT);
-        if (isset($_GET['save'])) {
-            setcookie("key", md5($current_key.$SALT), time() + 3600);
-
-        }
-        header("Location: ".$_SERVER['PHP_SELF']);
+        $user = get_user();
+		header("Location: index.php");
     }
 }
 
-/* MENU */ include ("modules/menu.php"); 
+
+/* MENU */ include ("templates/menu.php"); 
 
 ?>	
 	<div class="futured_items">
 		<div class="container">
-			<div class="headline">
+			<form method="POST">
+			<div class="autorization">
 				<?php if (!$allow) { ?> 
-					<form>
-						<input type='password' name='pass'> Запомнить?
-						<input type='checkbox' name='save'>
-						<input type='submit' name='send'>
-					</form>
-				<?php } else { ?>
-					Добро пожаловать <a href='?logout'>Выход</a>
+					<p><input type='text' name='login' placeholder='Логин'></p>
+					<p><input type='password' name='pass' placeholder='Пароль'></p>
+					<p>Save? <input type='checkbox' name='save'><input type='submit' name='send'></p>
 				<?php } ?>
 			</div>
+			</form>
 		</div>		
 	</div>
